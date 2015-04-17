@@ -23,8 +23,10 @@
                 new ScriptBundle("~/bundles/gmailclient").Include(
 #if DEBUG
                     "~/Scripts/knockout-{version}.debug.js",
+                    "~/Scripts/moment.js",
 #else
                         "~/Scripts/knockout-{version}.js",
+                        "~/Scripts/moment.min.js",
 #endif
                     "~/Scripts/gmailclient.js"));
 
@@ -32,7 +34,7 @@
             // ready for production, use the build tool at http://modernizr.com to pick only the tests you need.
             bundles.Add(new ScriptBundle("~/bundles/modernizr").Include("~/Scripts/modernizr-*"));
 
-            bundles.Add(new StyleBundle("~/Content/css").Include("~/Content/site.css", "~/Content/bootstrap.min.css"));
+            bundles.Add(new StyleBundle("~/Content/css").Include("~/Content/site.min.css", "~/Content/bootstrap.min.css"));
 
             bundles.Add(new StyleBundle("~/Content/themes/base/css").Include(
                         "~/Content/themes/base/jquery.ui.core.css",

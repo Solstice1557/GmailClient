@@ -17,44 +17,49 @@
     @Scripts.Render("~/bundles/gmailclient")
 }
 
-<div>
-    <h3>Your Account</h3>
+<div data-bind="visible: !accountLoading()">
+    <!-- ko if: account -->
+    <h3>
+        Your account - <span data-bind="text: account"></span> 
+        <button type="button" class="btn btn-danger" data-bind="click: removeAccount">Remove account</button>
+    </h3>
     
-    <!-- ko if: accountLoading -->
-        Loading...
     <!-- /ko -->
     
-    <!-- ko ifnot: accountLoading -->
-    <div data-bind="if: account">
-        Gmail - <span data-bind="text: account"></span> 
-        <button type="button" data-bind="click: removeAccount">Remove</button>
-    </div>
-    
-    <div data-bind="ifnot: account">
-        Add your account.<br/>
-        Enter gmail account <input type="text" data-bind="value: accountToSave, valueUpdate: 'input', css: { 'input-validation-error': accountToSaveIsNotCorrect }" /> <br/>
-        Enter gmail password <input type="password" data-bind="value: accountPasswordToSave, valueUpdate: 'input'" /><br/>
-        
-        <button type="button" data-bind="click: saveAccount, enable: canSaveAccount" >Save</button>
-    </div>
+    <!-- ko ifnot: account -->
+    <h3>Add your account</h3>
 
+    <div class="form-group">
+        <label>Gmail account</label>
+        <input type="email" class="form-control" data-bind="value: accountToSave, valueUpdate: 'input', css: { 'input-validation-error': accountToSaveIsNotCorrect }" placeholder="Enter email" />
+    </div>
+    <div class="form-group">
+        <label>Gmail password</label>
+        <input type="password" class="form-control" data-bind="value: accountPasswordToSave, valueUpdate: 'input'" placeholder="Enter password" />
+    </div>
+        
+    <button type="button" class="btn btn-success" data-bind="click: saveAccount, enable: canSaveAccount" >Save</button>
     <!-- /ko -->
 </div>
 
-<div data-bind="if: account">
+<div data-bind="visible: accountLoading">
+    Loading...
+</div>
+
+<div class="mail-page" data-bind="if: account">
     <!-- ko if: mailLoading -->
         Mail loading...
     <!-- /ko -->
     
     <!-- ko ifnot: mailLoading -->
-    Your have <span data-bind="text: totalLetters"></span> emails
+    <h3>Your have <span data-bind="text: totalLetters"></span> emails</h3>
     
     <!-- ko ifnot: currentMail -->
     <!-- ko ifnot: newMail -->
-    <button type="button" data-bind="click: refreshMail">Refresh</button>
-    <button type="button" data-bind="click: createMail">New mail</button>
+    <button type="button" class="btn btn-default" data-bind="click: refreshMail">Refresh</button>
+    <button type="button" class="btn btn-primary" data-bind="click: createMail">New mail</button>
     
-    <table>
+    <table class="table table-bordered table-condensed table-striped table-hover">
         <thead>
             <tr>
                 <th>From</th>
@@ -69,25 +74,31 @@
                 <td data-bind="text: From"></td>
                 <td data-bind="text: To"></td>
                 <td data-bind="text: Subject"></td>
-                <td data-bind="text: Date"></td>
-                <td>
-                    <button type="button" data-bind="click: $parent.deleteMail">Delete mail</button>
-                    <button type="button" data-bind="click: $parent.replyMail">Reply mail</button>
+                <td data-bind="text: moment(Date).format('LLL')"></td>
+                <td style="width: 100px;">
+                    <button type="button" class="btn btn-danger" data-bind="click: $parent.deleteMail" title="Delete mail">
+                        <span class="glyphicon glyphicon-remove"></span>
+                    </button>
+                    <button type="button" class="btn btn-info" data-bind="click: $parent.replyMail" title="Reply mail">
+                        <span class="glyphicon glyphicon-share-alt"></span>
+                    </button>
                 </td>
             </tr>
         </tbody>
     </table>
     
     <div>
-        <button type="button" data-bind="click: firstPage, enable: currentPage() > 1">First</button>
-        <button type="button" data-bind="click: prevPage, enable: currentPage() > 1">Prev</button>
-        <strong data-bind="text: currentPage"></strong>
-        <button type="button" data-bind="click: nextPage, enable: currentPage() < maxPageNumber()">Next</button>
-        <button type="button" data-bind="click: lastPage, enable: currentPage() < maxPageNumber()">Last</button>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-default" data-bind="click: firstPage, enable: currentPage() > 1">First</button>
+            <button type="button" class="btn btn-default" data-bind="click: prevPage, enable: currentPage() > 1">Prev</button>
+            <button type="button" class="btn btn-default active" disabled="disabled" data-bind="text: currentPage"></button>
+            <button type="button" class="btn btn-default" data-bind="click: nextPage, enable: currentPage() < maxPageNumber()">Next</button>
+            <button type="button" class="btn btn-default" data-bind="click: lastPage, enable: currentPage() < maxPageNumber()">Last</button>
+        </div>
         
-        <div>
-            Page size: 
-            <select data-bind="value: currentPageSize">
+        <div class="page-size">
+            <label>Page size:</label>
+            <select data-bind="value: currentPageSize" class="form-control">
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
@@ -99,17 +110,16 @@
     <!-- /ko -->
     
     <!-- ko if: currentMail -->
-    <button type="button" data-bind="click: backToList">Back to list</button>
-    
     <div data-bind="with: currentMail">
-        <button type="button" data-bind="click: $parent.deleteMail">Delete mail</button>
-        <button type="button" data-bind="click: $parent.replyMail">Reply mail</button>
+        <button type="button" class="btn btn-default" data-bind="click: $parent.backToList"><span class="glyphicon glyphicon-arrow-left"></span> Back to list</button>
+        <button type="button" class="btn btn-danger" data-bind="click: $parent.deleteMail"><span class="glyphicon glyphicon-remove"></span> Delete mail</button>
+        <button type="button" class="btn btn-info" data-bind="click: $parent.replyMail"><span class="glyphicon glyphicon-share-alt"></span> Reply mail</button>
 
         <dl >
             <dt>From</dt><dd data-bind="text: From"></dd>
             <dt>To</dt><dd data-bind="text: To"></dd>
             <dt>Subject</dt><dd data-bind="text: Subject"></dd>
-            <dt>Date</dt><dd data-bind="text: Date"></dd>
+            <dt>Date</dt><dd data-bind="text: moment(Date).format('LLL')"></dd>
             <dt>Text</dt><dd data-bind="html: Body"></dd>
             <dt>Attachments</dt>
             <dd>
@@ -122,10 +132,9 @@
     <!-- /ko -->
     
     <!-- ko if: newMail -->
-    <button type="button" data-bind="click: backToList">Back to list</button>
-    
     <div data-bind="with: newMail">
-        <button type="button" data-bind="click: $parent.sendMail">Send</button>
+        <button type="button" class="btn btn-default" data-bind="click: $parent.backToList"><span class="glyphicon glyphicon-arrow-left"></span> Back to list</button>
+        <button type="button"  class="btn btn-success" data-bind="click: $parent.sendMail"><span class="glyphicon glyphicon-send"></span> Send</button>
 
         <dl >
             <dt>To</dt>
