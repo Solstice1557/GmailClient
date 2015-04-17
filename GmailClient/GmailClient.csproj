@@ -246,6 +246,7 @@
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
     <Content Include="Content\site.less" />
     <None Include="Scripts\jquery-2.1.3.intellisense.js" />
+    <Content Include="Images\ajax-loader.gif" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\gmailclient.js" />

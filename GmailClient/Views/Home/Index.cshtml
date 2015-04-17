@@ -73,10 +73,10 @@
                 <td data-bind="text: Subject"></td>
                 <td data-bind="text: moment(Date).format('LLL')"></td>
                 <td style="width: 100px;">
-                    <button type="button" class="btn btn-danger" data-bind="click: $parent.deleteMail" title="Delete mail">
+                    <button type="button" class="btn btn-danger" data-bind="click: $parent.deleteMail, clickBubble: false" title="Delete mail">
                         <span class="glyphicon glyphicon-remove"></span>
                     </button>
-                    <button type="button" class="btn btn-info" data-bind="click: $parent.replyMail" title="Reply mail">
+                    <button type="button" class="btn btn-info" data-bind="click: $parent.replyMail, clickBubble: false" title="Reply mail">
                         <span class="glyphicon glyphicon-share-alt"></span>
                     </button>
                 </td>
