@@ -1,0 +1,148 @@
+﻿@{
+    ViewBag.Title = "Mail";
+}
+@section featured {
+    <section class="featured">
+        <div class="content-wrapper">
+            <hgroup class="title">
+                <h1>@ViewBag.Title.</h1>
+                <h2>@ViewBag.Message</h2>
+            </hgroup>
+        </div>
+    </section>
+}
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/gmailclient")
+}
+
+<div>
+    <h3>Your Account</h3>
+    
+    <!-- ko if: accountLoading -->
+        Loading...
+    <!-- /ko -->
+    
+    <!-- ko ifnot: accountLoading -->
+    <div data-bind="if: account">
+        Gmail - <span data-bind="text: account"></span> 
+        <button type="button" data-bind="click: removeAccount">Remove</button>
+    </div>
+    
+    <div data-bind="ifnot: account">
+        Add your account.<br/>
+        Enter gmail account <input type="text" data-bind="value: accountToSave" /> <br/>
+        Enter gmail password <input type="password" data-bind="value: accountPasswordToSave" /><br/>
+        
+        <button type="button" data-bind="click: saveAccount" >Save</button>
+    </div>
+
+    <!-- /ko -->
+</div>
+
+<div data-bind="if: account">
+    <!-- ko if: mailLoading -->
+        Mail loading...
+    <!-- /ko -->
+    
+    <!-- ko ifnot: mailLoading -->
+    Your have <span data-bind="text: totalLetters"></span> emails
+    
+    <!-- ko ifnot: currentMail -->
+    <!-- ko ifnot: newMail -->
+    <button type="button" data-bind="click: refreshMail">Refresh</button>
+    <button type="button" data-bind="click: createMail">New mail</button>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>From</th>
+                <th>To</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: lettersOnPage">
+            <tr data-bind="click: $parent.loadMail">
+                <td data-bind="text: From"></td>
+                <td data-bind="text: To"></td>
+                <td data-bind="text: Subject"></td>
+                <td data-bind="text: Date"></td>
+                <td>
+                    <button type="button" data-bind="click: $parent.deleteMail">Delete mail</button>
+                    <button type="button" data-bind="click: $parent.replyMail">Reply mail</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div>
+        <button type="button" data-bind="click: firstPage, enable: currentPage() > 1">First</button>
+        <button type="button" data-bind="click: prevPage, enable: currentPage() > 1">Prev</button>
+        <strong data-bind="text: currentPage"></strong>
+        <button type="button" data-bind="click: nextPage, enable: currentPage() < maxPageNumber()">Next</button>
+        <button type="button" data-bind="click: lastPage, enable: currentPage() < maxPageNumber()">Last</button>
+        
+        <div>
+            Page size: 
+            <select data-bind="value: currentPageSize">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+    </div>
+    <!-- /ko -->
+    <!-- /ko -->
+    
+    <!-- ko if: currentMail -->
+    <button type="button" data-bind="click: backToList">Back to list</button>
+    
+    <div data-bind="with: currentMail">
+        <button type="button" data-bind="click: $parent.deleteMail">Delete mail</button>
+        <button type="button" data-bind="click: $parent.replyMail">Reply mail</button>
+
+        <dl >
+            <dt>From</dt><dd data-bind="text: From"></dd>
+            <dt>To</dt><dd data-bind="text: To"></dd>
+            <dt>Subject</dt><dd data-bind="text: Subject"></dd>
+            <dt>Date</dt><dd data-bind="text: Date"></dd>
+            <dt>Text</dt><dd data-bind="html: Body"></dd>
+            <dt>Attachments</dt>
+            <dd>
+                <ul data-bind="foreach: Attachments">
+                    <li data-bind="text: $data"></li>
+                </ul>
+            </dd>
+        </dl>
+    </div>
+    <!-- /ko -->
+    
+    <!-- ko if: newMail -->
+    <button type="button" data-bind="click: backToList">Back to list</button>
+    
+    <div data-bind="with: newMail">
+        <button type="button" data-bind="click: $parent.sendMail">Send</button>
+
+        <dl >
+            <dt>To</dt>
+            <dd>
+                <input type="text" data-bind="value: to"/>
+            </dd>
+            <dt>Subject</dt>
+            <dd>
+                <input type="text" data-bind="value: subject"/>
+            </dd>
+            <dt>Text</dt>
+            <dd>
+                <textarea data-bind="value: body"></textarea>
+            </dd>
+        </dl>
+    </div>
+    <!-- /ko -->
+
+    <!-- /ko -->
+</div>

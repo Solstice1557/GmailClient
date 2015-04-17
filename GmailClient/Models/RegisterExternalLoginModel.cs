@@ -1,0 +1,11 @@
+namespace GmailClient.Models
+{
+    using System.ComponentModel.DataAnnotations;
+
+    public class RegisterExternalLoginModel
+    {
+        [Required]
+        [Display(Name = "User name")]
+        public string UserName { get; set; }
+    }
+}
