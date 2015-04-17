@@ -47,11 +47,8 @@
 </div>
 
 <div class="mail-page" data-bind="if: account">
-    <!-- ko if: mailLoading -->
-        Mail loading...
-    <!-- /ko -->
-    
-    <!-- ko ifnot: mailLoading -->
+    <div class="loading" data-bind="visible: mailLoading"></div>
+
     <h3>Your have <span data-bind="text: totalLetters"></span> emails</h3>
     
     <!-- ko ifnot: currentMail -->
@@ -99,10 +96,10 @@
         <div class="page-size">
             <label>Page size:</label>
             <select data-bind="value: currentPageSize" class="form-control">
+                <option value="5">5</option>
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
-                <option value="100">100</option>
             </select>
         </div>
     </div>
@@ -115,7 +112,7 @@
         <button type="button" class="btn btn-danger" data-bind="click: $parent.deleteMail"><span class="glyphicon glyphicon-remove"></span> Delete mail</button>
         <button type="button" class="btn btn-info" data-bind="click: $parent.replyMail"><span class="glyphicon glyphicon-share-alt"></span> Reply mail</button>
 
-        <dl >
+        <dl>
             <dt>From</dt><dd data-bind="text: From"></dd>
             <dt>To</dt><dd data-bind="text: To"></dd>
             <dt>Subject</dt><dd data-bind="text: Subject"></dd>
@@ -135,23 +132,15 @@
     <div data-bind="with: newMail">
         <button type="button" class="btn btn-default" data-bind="click: $parent.backToList"><span class="glyphicon glyphicon-arrow-left"></span> Back to list</button>
         <button type="button"  class="btn btn-success" data-bind="click: $parent.sendMail"><span class="glyphicon glyphicon-send"></span> Send</button>
-
-        <dl >
-            <dt>To</dt>
-            <dd>
-                <input type="text" data-bind="value: to"/>
-            </dd>
-            <dt>Subject</dt>
-            <dd>
-                <input type="text" data-bind="value: subject"/>
-            </dd>
-            <dt>Text</dt>
-            <dd>
-                <textarea data-bind="value: body"></textarea>
-            </dd>
-        </dl>
+        <br/><br/>
+        <label>To</label>
+        <input type="text" class="form-control" data-bind="value: to" placeholder="Enter email" />
+        
+        <label>Subject</label>
+        <input type="text" class="form-control" data-bind="value: subject" placeholder="Enter subject" />
+        
+        <label>Text</label>
+        <textarea class="form-control" data-bind="value: body"></textarea>
     </div>
-    <!-- /ko -->
-
     <!-- /ko -->
 </div>
