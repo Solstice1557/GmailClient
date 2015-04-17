@@ -14,14 +14,21 @@
 
     public class EmailManager : IEmailManager
     {
+        private readonly string smtpAddress;
+        private readonly int smtpPort;
+        private readonly string imapAddress;
+        private readonly int imapPort;
         private readonly string user;
-
         private readonly string password;
 
-        public EmailManager(string user, string password)
+        public EmailManager(string user, string password, string smtpAddress, int smtpPort, string imapAddress, int imapPort)
         {
             this.user = user;
             this.password = password;
+            this.smtpAddress = smtpAddress;
+            this.smtpPort = smtpPort;
+            this.imapAddress = imapAddress;
+            this.imapPort = imapPort;
         }
 
         public bool IsCorrect
@@ -41,28 +48,29 @@
         {
             if (!this.IsCorrect)
             {
-                throw new Exception("Bad username or password");
+                throw new EmailException("Bad username or password");
             }
 
-            using (var client = new ImapClient("imap.gmail.com", 993, this.user, this.password, AuthMethod.Login, true))
+            try
             {
-                var uids = client.Search(SearchCondition.All(), "inbox").OrderByDescending(u => u).ToList();
-                var total = uids.Count;
-                uids = uids.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-                var list = new List<EmailHeader>();
-                foreach (var uid in uids)
+                using (var client = this.CreateImapClient())
                 {
-                    var msg = client.GetMessage(uid, FetchOptions.HeadersOnly, mailbox: "inbox");
-                    list.Add(new EmailHeader(msg, uid));
-                }
+                    var uids = client.Search(SearchCondition.All(), "inbox").OrderByDescending(u => u).ToList();
+                    var total = uids.Count;
+                    uids = uids.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                    var list = new List<EmailHeader>();
+                    foreach (var uid in uids)
+                    {
+                        var msg = client.GetMessage(uid, FetchOptions.HeadersOnly, mailbox: "inbox");
+                        list.Add(new EmailHeader(msg, uid));
+                    }
 
-                return new EmailHeaderResult
-                       {
-                           Mails = list,
-                           Page = page,
-                           PageSize = pageSize,
-                           Total = total
-                       };
+                    return new EmailHeaderResult { Mails = list, Page = page, PageSize = pageSize, Total = total };
+                }
+            }
+            catch (InvalidCredentialsException)
+            {
+                throw new EmailException("Wrong username or password");
             }
         }
 
@@ -75,13 +83,20 @@
         {
             if (!this.IsCorrect)
             {
-                throw new Exception("Bad username or password");
+                throw new EmailException("Bad username or password");
             }
 
-            using (var client = new ImapClient("imap.gmail.com", 993, this.user, this.password, AuthMethod.Login, true))
+            try
             {
-                var msg = client.GetMessage(id, FetchOptions.Normal, mailbox: "inbox");
-                return new Email(msg, id);
+                using (var client = this.CreateImapClient())
+                {
+                    var msg = client.GetMessage(id, FetchOptions.Normal, mailbox: "inbox");
+                    return new Email(msg, id);
+                }
+            }
+            catch (InvalidCredentialsException)
+            {
+                throw new EmailException("Wrong username or password");
             }
         }
 
@@ -94,12 +109,19 @@
         {
             if (!this.IsCorrect)
             {
-                throw new Exception("Bad username or password");
+                throw new EmailException("Bad username or password");
             }
 
-            using (var client = new ImapClient("imap.gmail.com", 993, this.user, this.password, AuthMethod.Login, true))
+            try
             {
-                client.DeleteMessage(id, mailbox: "inbox");
+                using (var client = this.CreateImapClient())
+                {
+                    client.DeleteMessage(id, mailbox: "inbox");
+                }
+            }
+            catch (InvalidCredentialsException)
+            {
+                throw new EmailException("Wrong username or password");
             }
         }
 
@@ -107,7 +129,7 @@
         {
             if (!this.IsCorrect)
             {
-                throw new Exception("Bad username or password");
+                throw new EmailException("Bad username or password");
             }
 
             return Task.Factory.StartNew(() => this.Send(to, subject, body));
@@ -117,20 +139,18 @@
         {
             if (!this.IsCorrect)
             {
-                throw new Exception("Bad username or password");
+                throw new EmailException("Bad username or password");
             }
 
             if (string.IsNullOrEmpty(to))
             {
-                throw new ArgumentException("No addresses");
+                throw new EmailException("No addresses");
             }
-
-            var client = new SmtpClient("smtp.gmail.com", 587) { Credentials = new NetworkCredential(this.user, this.password), EnableSsl = true };
 
             var addresses = to.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => new MailAddress(s)).ToList();
             if (addresses.Count == 0)
             {
-                throw new ArgumentException("No addresses");
+                throw new EmailException("No addresses");
             }
 
             var from = new MailAddress(this.user);
@@ -151,7 +171,22 @@
                 }
             }
 
-            client.Send(message);
+            try
+            {
+                using (var client = new SmtpClient(this.smtpAddress, this.smtpPort) { Credentials = new NetworkCredential(this.user, this.password), EnableSsl = true })
+                {
+                    client.Send(message);
+                }
+            }
+            catch (SmtpException)
+            {
+                throw new EmailException("Cannot send mail.");
+            }
+        }
+
+        private ImapClient CreateImapClient()
+        {
+            return new ImapClient(this.imapAddress, this.imapPort, this.user, this.password, AuthMethod.Login, true);
         }
     }
 }

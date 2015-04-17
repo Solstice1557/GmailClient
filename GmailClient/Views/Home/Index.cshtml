@@ -32,10 +32,10 @@
     
     <div data-bind="ifnot: account">
         Add your account.<br/>
-        Enter gmail account <input type="text" data-bind="value: accountToSave" /> <br/>
-        Enter gmail password <input type="password" data-bind="value: accountPasswordToSave" /><br/>
+        Enter gmail account <input type="text" data-bind="value: accountToSave, valueUpdate: 'input', css: { 'input-validation-error': accountToSaveIsNotCorrect }" /> <br/>
+        Enter gmail password <input type="password" data-bind="value: accountPasswordToSave, valueUpdate: 'input'" /><br/>
         
-        <button type="button" data-bind="click: saveAccount" >Save</button>
+        <button type="button" data-bind="click: saveAccount, enable: canSaveAccount" >Save</button>
     </div>
 
     <!-- /ko -->

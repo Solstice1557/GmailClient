@@ -8,6 +8,19 @@
         self.accountLoading = ko.observable(true);
         self.accountPasswordToSave = ko.observable("");
         self.accountToSave = ko.observable("");
+        self.accountToSaveIsNotCorrect = ko.computed(function() {
+            var acc = this.accountToSave();
+            if (!acc) {
+                return false;
+            }
+
+            return !validateEmail(acc);
+        }, self);
+        self.canSaveAccount = ko.computed(function () {
+            var acc = this.accountToSave();
+            var pass = this.accountPasswordToSave();
+            return !!acc && !!pass && validateEmail(acc);
+        }, self);
         self.saveAccount = function() {
             var acc = self.accountToSave();
             var pass = self.accountPasswordToSave();
@@ -77,10 +90,10 @@
         self.totalLetters = ko.observable(0);
         self.lettersOnPage = ko.observableArray([]);
         self.maxPageNumber = ko.computed(function() {
-            var total = self.totalLetters();
-            var pageSize = self.currentPageSize();
+            var total = this.totalLetters();
+            var pageSize = this.currentPageSize();
             return Math.ceil(total / pageSize);
-        });
+        }, self);
         self.refreshMail = function() {
             if (!self.account()) {
                 return;
@@ -91,6 +104,7 @@
         self.currentPageSize.subscribe(function() {
             self.refreshMail();
         });
+
         self.nextPage = function() {
             var currentPage = self.currentPage();
             var maxPage = self.maxPageNumber();
@@ -137,11 +151,17 @@
                 self.currentMail(mail);
             } else {
                 self.mailLoading(true);
-                $.getJSON("/api/Mail/Get/" + mail.Uid, {}, function(data) {
-                        mail.Body = data.Body;
-                        mail.Attachments = data.Attachments;
-                        mail.loaded = true;
-                        self.currentMail(mail);
+                $.getJSON("/api/Mail/Get/" + mail.Uid, {}, function(response) {
+                        if (response.Success) {
+                            var result = response.Data;
+                            mail.Body = result.Body;
+                            mail.Attachments = result.Attachments;
+                            mail.loaded = true;
+                            self.currentMail(mail);
+                        } else {
+                            showAlert(response.Message);
+                        }
+
                     })
                     .fail(function() {
                         showAlert("Error while requesting server!");
@@ -181,7 +201,6 @@
             self.currentMail(null);
             self.newMail(createNewMail("", ""));
         };
-
         self.sendMail = function() {
             var mail = self.newMail();
             if (!mail) {
@@ -246,13 +265,18 @@
 
             self.mailLoading(true);
             $.getJSON("/api/Mail/Get", params,
-                    function(result) {
-                        self.lettersOnPage.removeAll();
-                        self.lettersOnPage(result.Mails);
-                        self.totalLetters(result.Total);
-                        self.currentPage(result.Page);
-                        self.currentMail(null);
-                        self.newMail(null);
+                    function (response) {
+                        if (response.Success) {
+                            var result = response.Data;
+                            self.lettersOnPage.removeAll();
+                            self.lettersOnPage(result.Mails);
+                            self.totalLetters(result.Total);
+                            self.currentPage(result.Page);
+                            self.currentMail(null);
+                            self.newMail(null);
+                        } else {
+                            showAlert(response.Message);
+                        }
                     })
                 .fail(function() {
                     showAlert("Error while requesting server!");

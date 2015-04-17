@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EmailException.cs" />
     <Compile Include="Entities\EmailHeaderResult.cs" />
     <Compile Include="Entities\UserProfile.cs" />
     <Compile Include="GmailClientContext.cs" />

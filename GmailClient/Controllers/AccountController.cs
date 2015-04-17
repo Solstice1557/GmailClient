@@ -27,7 +27,7 @@
         public ActionResult Login(string returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
-            return View();
+            return this.View();
         }
 
         //
@@ -40,12 +40,12 @@
         {
             if (ModelState.IsValid && WebSecurity.Login(model.UserName, model.Password, persistCookie: model.RememberMe))
             {
-                return RedirectToLocal(returnUrl);
+                return this.RedirectToLocal(returnUrl);
             }
 
             // If we got this far, something failed, redisplay form
-            ModelState.AddModelError("", "The user name or password provided is incorrect.");
-            return View(model);
+            this.ModelState.AddModelError("", "The user name or password provided is incorrect.");
+            return this.View(model);
         }
 
         //
@@ -57,7 +57,7 @@
         {
             WebSecurity.Logout();
 
-            return RedirectToAction("Index", "Home");
+            return this.RedirectToAction("Index", "Home");
         }
 
         //
@@ -66,7 +66,7 @@
         [AllowAnonymous]
         public ActionResult Register()
         {
-            return View();
+            return this.View();
         }
 
         //
@@ -77,23 +77,23 @@
         [ValidateAntiForgeryToken]
         public ActionResult Register(RegisterModel model)
         {
-            if (ModelState.IsValid)
+            if (this.ModelState.IsValid)
             {
                 // Attempt to register the user
                 try
                 {
                     WebSecurity.CreateUserAndAccount(model.UserName, model.Password);
                     WebSecurity.Login(model.UserName, model.Password);
-                    return RedirectToAction("Index", "Home");
+                    return this.RedirectToAction("Index", "Home");
                 }
                 catch (MembershipCreateUserException e)
                 {
-                    ModelState.AddModelError("", ErrorCodeToString(e.StatusCode));
+                    this.ModelState.AddModelError(string.Empty, ErrorCodeToString(e.StatusCode));
                 }
             }
 
             // If we got this far, something failed, redisplay form
-            return View(model);
+            return this.View(model);
         }
 
         //
@@ -101,12 +101,12 @@
 
         public ActionResult Manage(ManageMessageId? message)
         {
-            ViewBag.StatusMessage =
+            this.ViewBag.StatusMessage =
                 message == ManageMessageId.ChangePasswordSuccess ? "Your password has been changed."
                 : message == ManageMessageId.SetPasswordSuccess ? "Your password has been set."
-                : "";
-            ViewBag.ReturnUrl = Url.Action("Manage");
-            return View();
+                : string.Empty;
+            this.ViewBag.ReturnUrl = Url.Action("Manage");
+            return this.View();
         }
 
         //
@@ -117,49 +117,63 @@
         public ActionResult Manage(LocalPasswordModel model)
         {
             ViewBag.ReturnUrl = Url.Action("Manage");
-           
-            if (ModelState.IsValid)
-            {
-                // ChangePassword will throw an exception rather than return false in certain failure scenarios.
-                bool changePasswordSucceeded;
-                try
-                {
-                    changePasswordSucceeded = WebSecurity.ChangePassword(User.Identity.Name, model.OldPassword, model.NewPassword);
-                }
-                catch (Exception)
-                {
-                    changePasswordSucceeded = false;
-                }
 
-                if (changePasswordSucceeded)
-                {
-                    return RedirectToAction("Manage", new { Message = ManageMessageId.ChangePasswordSuccess });
-                }
-                else
-                {
-                    ModelState.AddModelError("", "The current password is incorrect or the new password is invalid.");
-                }
+            if (!this.ModelState.IsValid)
+            {
+                return this.View(model);
             }
-            
+
+            // ChangePassword will throw an exception rather than return false in certain failure scenarios.
+            bool changePasswordSucceeded;
+            try
+            {
+                changePasswordSucceeded = WebSecurity.ChangePassword(this.User.Identity.Name, model.OldPassword, model.NewPassword);
+            }
+            catch (Exception)
+            {
+                changePasswordSucceeded = false;
+            }
+
+            if (changePasswordSucceeded)
+            {
+                return this.RedirectToAction("Manage", new { Message = ManageMessageId.ChangePasswordSuccess });
+            }
+
+            this.ModelState.AddModelError(string.Empty, "The current password is incorrect or the new password is invalid.");
 
             // If we got this far, something failed, redisplay form
-            return View(model);
+            return this.View(model);
         }
 
         public string GetGmailAccount()
         {
-            var user = this.dbContext.Users.First(u => u.UserName == this.User.Identity.Name);
-            return user.GmailAccount;
+            var user = this.dbContext.Users.FirstOrDefault(u => u.UserName == this.User.Identity.Name);
+            return user != null ? (user.GmailAccount ?? string.Empty) : string.Empty;
         }
 
         public ActionResult SetGmailAccount(MailSettingsModel model)
         {
-            var user = this.dbContext.Users.First(u => u.UserName == this.User.Identity.Name);
+            if (string.IsNullOrEmpty(model.UserName))
+            {
+                return this.Json(new OperationResultModel(false, "Please enter account"));
+            }
+
+            if (string.IsNullOrEmpty(model.Password))
+            {
+                return this.Json(new OperationResultModel(false, "Please enter password"));
+            }
+
+            var user = this.dbContext.Users.FirstOrDefault(u => u.UserName == this.User.Identity.Name);
+            if (user == null)
+            {
+                return this.Json(new OperationResultModel(false, "User not found. Please register."));
+            }
+
             user.GmailAccount = model.UserName;
             user.GmailPassword = model.Password;
             this.dbContext.SaveChanges();
 
-            return this.Json(new OperationResultModel(true, string.Empty));
+            return this.Json(new OperationResultModel(true));
         }
 
         public ActionResult ResetGmailAccount()
@@ -169,7 +183,7 @@
             user.GmailPassword = null;
             this.dbContext.SaveChanges();
 
-            return this.Json(new OperationResultModel(true, string.Empty));
+            return this.Json(new OperationResultModel(true));
         }
 
 
@@ -178,12 +192,10 @@
         {
             if (Url.IsLocalUrl(returnUrl))
             {
-                return Redirect(returnUrl);
+                return this.Redirect(returnUrl);
             }
-            else
-            {
-                return RedirectToAction("Index", "Home");
-            }
+
+            return this.RedirectToAction("Index", "Home");
         }
 
         public enum ManageMessageId
