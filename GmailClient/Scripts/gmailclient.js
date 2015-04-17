@@ -73,7 +73,7 @@
 
         self.mailLoading = ko.observable(false);
         self.currentPage = ko.observable(1);
-        self.currentPageSize = ko.observable(10);
+        self.currentPageSize = ko.observable("10");
         self.totalLetters = ko.observable(0);
         self.lettersOnPage = ko.observableArray([]);
         self.maxPageNumber = ko.computed(function() {
@@ -137,7 +137,7 @@
                 self.currentMail(mail);
             } else {
                 self.mailLoading(true);
-                $.getJSON("/api/Mail/" + mail.Uid, {}, function(data) {
+                $.getJSON("/api/Mail/Get/" + mail.Uid, {}, function(data) {
                         mail.Body = data.Body;
                         mail.Attachments = data.Attachments;
                         mail.loaded = true;
@@ -157,17 +157,12 @@
             }
 
             self.mailLoading(true);
-            $.ajax({
-                    url: "/api/Mail/" + mail.Uid,
-                    type: 'DELETE',
-                    dataType: "json",
-                    success: function(data) {
-                        if (data.Success) {
-                            self.currentMail(null);
-                            self.lettersOnPage.remove(function (item) { return item.Uid === mail.Uid; });
-                        } else {
-                            showAlert(data.Message);
-                        }
+            $.getJSON("/api/Mail/Delete/" + mail.Uid, {}, function(data) {
+                    if (data.Success) {
+                        self.currentMail(null);
+                        self.lettersOnPage.remove(function(item) { return item.Uid === mail.Uid; });
+                    } else {
+                        showAlert(data.Message);
                     }
                 }).fail(function() {
                     showAlert("Error while requesting server!");
@@ -210,19 +205,12 @@
             }
 
             self.mailLoading(true);
-            $.ajax({
-                    url: "/api/Mail/",
-                    type: 'POST',
-                    data: params,
-                    contentType: "application/json",
-                    dataType: "json",
-                    success: function(data) {
-                        if (data.Success) {
-                            self.newMail(null);
-                            showAlert("Mail sended");
-                        } else {
-                            showAlert(data.Message);
-                        }
+            $.getJSON("/api/Mail/Send", params, function(data) {
+                    if (data.Success) {
+                        self.newMail(null);
+                        showAlert("Mail sended");
+                    } else {
+                        showAlert(data.Message);
                     }
                 }).fail(function() {
                     showAlert("Error while requesting server!");
@@ -257,7 +245,7 @@
             }
 
             self.mailLoading(true);
-            $.getJSON("/api/Mail", params,
+            $.getJSON("/api/Mail/Get", params,
                     function(result) {
                         self.lettersOnPage.removeAll();
                         self.lettersOnPage(result.Mails);

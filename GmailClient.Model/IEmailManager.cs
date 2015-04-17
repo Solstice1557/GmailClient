@@ -12,8 +12,16 @@ namespace GmailClient.Model
 
         EmailHeaderResult GetInboxEmailHeaders(int page, int pageSize);
 
-        Email GetEmail(uint uid);
+        Task<Email> GetEmailAsync(uint id);
+
+        Email GetEmail(uint id);
+
+        Task DeleteAsync(uint id);
 
         void Delete(uint id);
+
+        Task SendAsync(string to, string subject, string body);
+
+        void Send(string to, string subject, string body);
     }
 }

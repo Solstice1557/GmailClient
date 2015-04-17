@@ -34,16 +34,17 @@
             return this.emailManager.GetEmail(id);
         }
 
-        [HttpDelete]
+        [HttpGet]
         public OperationResultModel Delete(uint id)
         {
             this.emailManager.Delete(id);
             return new OperationResultModel(true, string.Empty);
         }
 
-        [HttpPost]
-        public OperationResultModel Post(string to, string body, string subject)
+        [HttpGet]
+        public OperationResultModel Send(string to, string body, string subject)
         {
+            this.emailManager.Send(to, subject, body);
             return new OperationResultModel(true, string.Empty);
         }
     }
